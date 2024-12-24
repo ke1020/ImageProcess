@@ -23,8 +23,10 @@ public class ImageSharpWatermarker(IImageProcessHelper imageProcessHelper) : IIm
     /// <typeparam name="T"></typeparam>
     /// <param name="req"></param>
     /// <returns></returns>
-    public async Task WatermarkAsync<T>(ImageWatermarkRequest<T> req) where T : WatermarkBase
+    public async Task WatermarkAsync<T>(ImageWatermarkRequest<T> req, CancellationToken cancellationToken = default) where T : WatermarkBase
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 获取输出格式
         var format = ImageSharpHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
 

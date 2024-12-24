@@ -1,5 +1,6 @@
 using Ke.ImageProcess.Abstractions;
 using Ke.ImageProcess.Models.Convert;
+
 using SixLabors.ImageSharp;
 
 namespace Ke.ImageProcess.ImageSharp;
@@ -19,14 +20,14 @@ public class ImageSharpConverter(IImageProcessHelper imageProcessHelper) : IImag
     /// <returns></returns>
     public async Task ConvertAsync(ImageConvertRequest req, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 获取输出格式
         var format = ImageSharpHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
         int i = 0;
         // 遍历文件集合进行处理
         foreach (var file in req.ImageSources)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!_imageProcessHelper.IsImage(file))
             {
                 continue;
@@ -39,7 +40,7 @@ public class ImageSharpConverter(IImageProcessHelper imageProcessHelper) : IImag
             // 载入图像
             using var image = Image.Load(file);
             // 保存
-            await image.SaveAsync(outputFile, format);
+            await image.SaveAsync(outputFile, format, cancellationToken);
 
             OnConverted?.Invoke(this, new ConvertEventArgs(i));
             i++;

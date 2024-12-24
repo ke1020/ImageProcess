@@ -17,5 +17,5 @@ public interface IImageWatermarker
     /// </summary>
     /// <param name="req">添加水印请求对象</param>
     /// <returns></returns>
-    Task WatermarkAsync<T>(ImageWatermarkRequest<T> req) where T : WatermarkBase;
+    Task WatermarkAsync<T>(ImageWatermarkRequest<T> req, CancellationToken cancellationToken = default) where T : WatermarkBase;
 }

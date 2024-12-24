@@ -16,7 +16,7 @@ public interface IImageScaler
     /// </summary>
     /// <param name="req">缩放请求对象</param>
     /// <returns></returns>
-    Task ScaleAsync(ImageScaleRequest req);
+    Task ScaleAsync(ImageScaleRequest req, CancellationToken cancellationToken = default);
     /// <summary>
     /// 根据源图缩放并返回 PNG 格式的内存流
     /// </summary>
@@ -24,5 +24,5 @@ public interface IImageScaler
     /// <param name="width">目标宽度</param>
     /// <param name="height">目标高度</param>
     /// <returns></returns>
-    Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height);
+    Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height, CancellationToken cancellationToken = default);
 }

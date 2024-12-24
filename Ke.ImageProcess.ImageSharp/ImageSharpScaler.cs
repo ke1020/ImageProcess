@@ -99,8 +99,10 @@ public class ImageSharpScaler(IImageProcessHelper imageProcessHelper) : IImageSc
         }
     };
 
-    public async Task ScaleAsync(ImageScaleRequest req)
+    public async Task ScaleAsync(ImageScaleRequest req, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // 获取输出格式
         var outputFormat = ImageSharpHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
 
@@ -143,8 +145,10 @@ public class ImageSharpScaler(IImageProcessHelper imageProcessHelper) : IImageSc
     /// <param name="width">目标宽度</param>
     /// <param name="height">目标高度</param>
     /// <returns></returns>
-    public async Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height)
+    public async Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (!_imageProcessHelper.IsImage(imageSource))
         {
             return null;

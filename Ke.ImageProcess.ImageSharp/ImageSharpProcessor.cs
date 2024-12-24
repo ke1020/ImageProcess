@@ -26,18 +26,18 @@ public class ImageSharpProcessor(IImageConverter converter, IImageWatermarker wa
         return _converter.ConvertAsync(req, cancellationToken);
     }
 
-    public Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height) =>
-        _scaler.GetScaleStreamAsync(imageSource, width, height);
+    public Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height, CancellationToken cancellationToken = default) =>
+        _scaler.GetScaleStreamAsync(imageSource, width, height, cancellationToken);
 
-    public Task ScaleAsync(ImageScaleRequest req)
+    public Task ScaleAsync(ImageScaleRequest req, CancellationToken cancellationToken = default)
     {
         _scaler.OnScaled += OnScaled;
-        return _scaler.ScaleAsync(req);
+        return _scaler.ScaleAsync(req, cancellationToken);
     }
 
-    public Task WatermarkAsync<T>(ImageWatermarkRequest<T> req) where T : WatermarkBase
+    public Task WatermarkAsync<T>(ImageWatermarkRequest<T> req, CancellationToken cancellationToken = default) where T : WatermarkBase
     {
         _watermarker.OnWatermarked += OnWatermarked;
-        return _watermarker.WatermarkAsync(req);
+        return _watermarker.WatermarkAsync(req, cancellationToken);
     }
 }
