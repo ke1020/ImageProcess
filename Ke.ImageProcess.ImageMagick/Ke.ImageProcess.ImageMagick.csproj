@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+    名称中带有 Q8 的版本是每像素 8 位分量（例如 8 位红色、8 位绿分量等），而 Q16 是每像素 16 位分量。
+     Q16 版本允许您在不损失精度的情况下读取或写入 16 位图像，但需要的资源是 Q8 版本的两倍。 Q16-HDRI
+     版本使用的内存量是 Q16 的两倍。它更精确，因为它使用浮点 （每像素 32 位组件） 它允许越界像素（小于 0 和大于 65535）。
+     Q8 版本是推荐版本。如果您需要读/写镜像 质量更好的您应该使用 Q16 版本。
+    -->
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.2.0" />
+    <!--
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.2.0" />
+    <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="14.2.0" />
+    -->
+
+    <ProjectReference Include="..\Ke.ImageProcess.Abstractions\Ke.ImageProcess.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

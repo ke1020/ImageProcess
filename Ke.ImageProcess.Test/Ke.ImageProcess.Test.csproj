@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+        <PackageReference Include="NSubstitute" Version="4.2.2" />
+        <PackageReference Include="Shouldly" Version="4.0.3" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.extensibility.execution" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
+        <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis"
+            Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="8.0.4" />
+        <PackageReference Include="Volo.Abp.Caching.StackExchangeRedis" Version="$(AbpVersion)" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="$(AbpVersion)" />
+        <PackageReference Include="Volo.Abp.Authorization" Version="$(AbpVersion)" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="$(AbpVersion)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!--
+        <ProjectReference Include="..\Ke.ImageProcess.ImageMagick\Ke.ImageProcess.ImageMagick.csproj" />
+        -->
+        <ProjectReference Include="..\Ke.ImageProcess.ImageSharp\Ke.ImageProcess.ImageSharp.csproj" />
+    </ItemGroup>
+
+    <!-- 在 Target 节中不能直接使用通配符 -->
+    <ItemGroup>
+        <source1 Include="files\**\*.*" />
+    </ItemGroup>
+
+    <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+        <Copy SourceFiles="@(source1)" DestinationFolder="$(OutDir)\files\" />
+    </Target>
+
+</Project>
