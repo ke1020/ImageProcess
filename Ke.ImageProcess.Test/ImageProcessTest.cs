@@ -1,35 +1,34 @@
 using System.Text.Json;
+
 using Ke.ImageProcess.Abstractions;
-using Ke.ImageProcess.ImageSharp;
 using Ke.ImageProcess.Models;
 using Ke.ImageProcess.Models.Convert;
 using Ke.ImageProcess.Models.Scale;
 using Ke.ImageProcess.Models.Watermark;
-using SixLabors.ImageSharp.Formats;
 using Xunit;
 
 namespace Ke.ImageProcess.Test;
 
 public class ImageProcessTest : TestBase<ImageProcessTestModule>
 {
-    private readonly string inputPath = @"D:\0Project\0基础库\src\ImageProcess\Ke.ImageProcess.Test\files\371626104";
+    //private readonly string inputPath = @"D:\0Project\0基础库\src\ImageProcess\Ke.ImageProcess.Test\files\371626104";
     private readonly string outputPath = @"D:\0Project\0基础库\src\ImageProcess\Ke.ImageProcess.Test\files\371626105";
-    private readonly IImageProcessor<IImageEncoder> _imageSharpProcessor;
+    //private readonly IImageProcessor _imageProcessor;
     private readonly IImageScaler _imageSharpScaler;
     private readonly IImageConverter _imageSharpConverter;
     private readonly IImageWatermarker _imageSharpWatermarker;
     /*
-    private readonly IBatchScaler _imageMagickScaler;
-    private readonly IBatchConverter _imageMagickConverter;
-    private readonly IBatchWatermarker _imageMagickWatermarker;
+    private readonly IImageScaler _imageMagickScaler;
+    private readonly IImageConverter _imageMagickConverter;
+    private readonly IImageWatermarker _imageMagickWatermarker;
     */
 
     public ImageProcessTest()
     {
-        _imageSharpScaler = GetRequiredKeyedService<IImageScaler>(ImageProcessTestConsts.ImageSharpKeyed);
-        _imageSharpConverter = GetRequiredKeyedService<IImageConverter>(ImageProcessTestConsts.ImageSharpKeyed);
-        _imageSharpWatermarker = GetRequiredKeyedService<IImageWatermarker>(ImageProcessTestConsts.ImageSharpKeyed);
-        _imageSharpProcessor = GetRequiredService<IImageProcessor<IImageEncoder>>();
+        _imageSharpScaler = GetRequiredService<IImageScaler>();
+        _imageSharpConverter = GetRequiredService<IImageConverter>();
+        _imageSharpWatermarker = GetRequiredService<IImageWatermarker>();
+        //_imageSharpProcessor = GetRequiredService<IImageProcessor>();
 
         //_imageMagickScaler = GetRequiredKeyedService<IImageScaler>(ImageProcessTestConsts.ImageMagickKeyed);
         //_imageMagickConverter = GetRequiredKeyedService<IImageConverter>(ImageProcessTestConsts.ImageMagickKeyed);
@@ -39,6 +38,7 @@ public class ImageProcessTest : TestBase<ImageProcessTestModule>
     [Fact]
     public async Task ImageSharpTest()
     {
+        /*
         var images = _imageSharpProcessor.GetImages(
             [
                 inputPath,
@@ -46,6 +46,8 @@ public class ImageProcessTest : TestBase<ImageProcessTestModule>
             ],
             [".jpg", ".png", ".bmp", ".webp", ".gif"])
             ;
+        */
+        var images = Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "files"));
 
         // 批量缩放
         await _imageSharpScaler.ScaleAsync(new ImageScaleRequest(images, outputPath, "png")
@@ -63,8 +65,6 @@ public class ImageProcessTest : TestBase<ImageProcessTestModule>
             Quality = 80,
             //Suffix = null
         });
-
-        return;
 
         // 图片水印
         await _imageSharpWatermarker.WatermarkAsync(new ImageWatermarkRequest<ImageWatermark>(images, outputPath, "png")

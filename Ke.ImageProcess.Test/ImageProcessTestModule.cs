@@ -2,7 +2,6 @@
 //using Ke.ImageProcess.ImageMagick;
 using Ke.ImageProcess.ImageSharp;
 using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp.Formats;
 using Volo.Abp;
 using Volo.Abp.Authorization;
 using Volo.Abp.Autofac;
@@ -45,10 +44,11 @@ public class ImageProcessTestModule : AbpModule
         });
         */
 
-        serv.AddSingleton<IImageProcessor<IImageEncoder>, ImageSharpProcessor>();
-        serv.AddKeyedSingleton<IImageScaler, ImageSharpScaler>(ImageProcessTestConsts.ImageSharpKeyed);
-        serv.AddKeyedSingleton<IImageConverter, ImageSharpConverter>(ImageProcessTestConsts.ImageSharpKeyed);
-        serv.AddKeyedSingleton<IImageWatermarker, ImageSharpWatermarker>(ImageProcessTestConsts.ImageSharpKeyed);
+        //serv.AddSingleton<IImageProcessor<IImageEncoder>, ImageSharpProcessor>();
+        serv.AddSingleton<IImageScaler, ImageSharpScaler>();
+        serv.AddSingleton<IImageConverter, ImageSharpConverter>();
+        serv.AddSingleton<IImageWatermarker, ImageSharpWatermarker>();
+        serv.AddSingleton<IImageProcessHelper, DefaultImageProcessHelper>();
         //serv.AddKeyedSingleton<IBatchScaler, ImageMagickBatchScaler>(ImageProcessTestConsts.ImageMagickKeyed);
         //serv.AddKeyedSingleton<IBatchConverter, ImageMagickBatchConverter>(ImageProcessTestConsts.ImageMagickKeyed);
         //serv.AddKeyedSingleton<IBatchWatermarker, ImageMagickBatchWatermarker>(ImageProcessTestConsts.ImageMagickKeyed);
