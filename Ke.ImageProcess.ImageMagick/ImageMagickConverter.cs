@@ -1,25 +1,24 @@
+
 using ImageMagick;
+
 using Ke.ImageProcess.Abstractions;
-using Ke.ImageProcess.Exceptions;
 using Ke.ImageProcess.Models.Convert;
 
 namespace Ke.ImageProcess.ImageMagick;
 
-public class ImageMagickBatchConverter : IBatchConverter
+public class ImageMagickConverter : IImageConverter
 {
-    /// <summary>
-    /// 批量图片格式转换
-    /// </summary>
-    /// <param name="req"></param>
-    /// <returns></returns>
-    public async Task BatchConvertAsync(ImageConvertRequest req)
+    public event EventHandler<ConvertEventArgs>? OnConverted;
+
+    public async Task ConvertAsync(ImageConvertRequest req, CancellationToken cancellationToken = default)
     {
-        // 获取要处理的文件集合
-        var files = ImageProcessHelper.GetFiles(req.InputFilePath, req.SearchExtensions);
+        cancellationToken.ThrowIfCancellationRequested();
         // 获取输出格式
-        var outputFormat = ImageProcessHelper.GetOutputFormat(req.OutputExtension);
+        var outputFormat = ImageMagickHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
+        // 
+        int i = 0;
         // 遍历文件集合进行处理
-        foreach (var file in files)
+        foreach (var file in req.ImageSources)
         {
             // 获取没有扩展名的文件名称
             var fileName = Path.GetFileNameWithoutExtension(file);
@@ -33,6 +32,9 @@ public class ImageMagickBatchConverter : IBatchConverter
             image.Quality = req.Quality;
             // 写入文件
             await image.WriteAsync(outputFile);
+
+            OnConverted?.Invoke(this, new ConvertEventArgs(i));
+            i++;
         }
     }
 }

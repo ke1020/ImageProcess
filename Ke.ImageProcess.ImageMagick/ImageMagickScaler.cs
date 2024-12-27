@@ -1,12 +1,14 @@
 
+
 using ImageMagick;
+
 using Ke.ImageProcess.Abstractions;
 using Ke.ImageProcess.Models;
 using Ke.ImageProcess.Models.Scale;
 
 namespace Ke.ImageProcess.ImageMagick;
 
-public class ImageMagickBatchScaler : IBatchScaler
+public class ImageMagickScaler : IImageScaler
 {
     /// <summary>
     /// 缩放处理器字典
@@ -64,14 +66,22 @@ public class ImageMagickBatchScaler : IBatchScaler
         }
     };
 
-    public async Task BatchScaleAsync(ImageScaleRequest req)
+    public event EventHandler<ScaleEventArgs>? OnScaled;
+
+    public Task<Stream?> GetScaleStreamAsync(string imageSource, uint? width, uint? height, CancellationToken cancellationToken = default)
     {
-        // 获取要处理的文件集合
-        var files = ImageProcessHelper.GetFiles(req.InputFilePath, req.SearchExtensions);
+        throw new NotImplementedException();
+    }
+
+    public async Task ScaleAsync(ImageScaleRequest req, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         // 获取输出格式
-        var outputFormat = ImageProcessHelper.GetOutputFormat(req.OutputExtension);
+        var outputFormat = ImageMagickHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
+        // 
+        int i = 0;
         // 遍历文件集合进行处理
-        foreach (var file in files)
+        foreach (var file in req.ImageSources)
         {
             // 获取没有扩展名的文件名称
             var fileName = Path.GetFileNameWithoutExtension(file);
@@ -83,6 +93,7 @@ public class ImageMagickBatchScaler : IBatchScaler
                 try
                 {
                     await processor(req, file, outputFile);
+                    OnScaled?.Invoke(this, new ScaleEventArgs(i));
                 }
                 catch (MagickException e)
                 {

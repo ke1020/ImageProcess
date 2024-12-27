@@ -1,13 +1,15 @@
 using System.Text;
+
 using ImageMagick;
 using ImageMagick.Drawing;
+
 using Ke.ImageProcess.Abstractions;
 using Ke.ImageProcess.Models;
 using Ke.ImageProcess.Models.Watermark;
 
 namespace Ke.ImageProcess.ImageMagick;
 
-public class ImageMagickBatchWatermarker : IBatchWatermarker
+public class ImageMagickBatchWatermarker : IImageWatermarker
 {
     /// <summary>
     /// 水印位置映射
@@ -25,73 +27,7 @@ public class ImageMagickBatchWatermarker : IBatchWatermarker
         { WatermarkPosition.BottomRight, Gravity.Southeast }
     };
 
-    /// <summary>
-    /// 批量添加水印
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="req"></param>
-    /// <returns></returns>
-    public async Task BatchWatermarkAsync<T>(ImageWatermarkRequest<T> req) where T : WatermarkBase
-    {
-        // 获取要处理的文件集合
-        var files = ImageProcessHelper.GetFiles(req.InputFilePath, req.SearchExtensions);
-        /*
-        // 获取输出格式
-        var format = ImageProcessHelper.GetOutputFormat(req.OutputExtension);
-        */
-        // 加载水印图片
-        using var watermark = req?.Mode switch
-        {
-            WatermarkMode.Text => GetTextWatermark(req),
-            WatermarkMode.Image => new MagickImage((req.Watermark as ImageWatermark)?.FileName!, new MagickReadSettings
-            {
-                BackgroundColor = MagickColors.Transparent
-            }),
-            _ => throw new UnknowWatermarkModeException("WatermarkMode")
-        };
-
-        if (req.Rotation.HasValue)
-        {
-            watermark.Rotate(req.Rotation.Value);
-        }
-
-        if (req.Opacity.HasValue)
-        {
-            // 可选，设置水印透明度
-            watermark.Evaluate(Channels.Alpha, EvaluateOperator.Divide, 1.0 / req.Opacity.Value);
-        }
-
-        // 遍历文件集合进行处理
-        foreach (var file in files)
-        {
-            // 获取没有扩展名的文件名称
-            var fileName = Path.GetFileNameWithoutExtension(file);
-            // 结果输出路径
-            var outputFile = Path.Combine(req?.OutputFilePath!, $"{fileName}{req?.Suffix ?? ""}.{req?.OutputExtension}");
-            // 加载原图
-            using var image = new MagickImage(file);
-
-            if (req?.IsTile == true)
-            {
-                // 将 水印 图像以平铺的方式叠加到 image 上
-                image.Tile(watermark, CompositeOperator.Over);
-            }
-            else
-            {
-                // 边距
-                int offset = req?.Margin ?? 0;
-                // 在指定位置绘制水印。CompositeOperator.Over 模式表示透明部分不会覆盖底层图像
-                image.Composite(watermark,
-                    _watermarkPositionGravityMaps[req?.Position ?? WatermarkPosition.Center],
-                    offset, // offset X
-                    offset, // offset Y
-                    CompositeOperator.Over)
-                    ;
-            }
-            // Save the result
-            await image.WriteAsync(outputFile);
-        }
-    }
+    public event EventHandler<WatermarkEventArgs>? OnWatermarked;
 
     /// <summary>
     /// 将 RgbaColor 转为 MagickColor，输入对象为空时返回透明色
@@ -143,5 +79,69 @@ public class ImageMagickBatchWatermarker : IBatchWatermarker
         var image = new MagickImage(FromRgba(watermark.BackgroundColor), textWidth, textHeight);
         image.Draw(drawables);
         return image;
+    }
+
+    public async Task WatermarkAsync<T>(ImageWatermarkRequest<T> req, CancellationToken cancellationToken = default) where T : WatermarkBase
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        // 获取输出格式
+        var outputFormat = ImageMagickHelper.GetOutputFormat(req.OutputExtension, (int)req.Quality);
+        // 
+        int i = 0;
+        // 加载水印图片
+        using var watermark = req?.Mode switch
+        {
+            WatermarkMode.Text => GetTextWatermark(req),
+            WatermarkMode.Image => new MagickImage((req.Watermark as ImageWatermark)?.FileName!, new MagickReadSettings
+            {
+                BackgroundColor = MagickColors.Transparent
+            }),
+            _ => throw new UnknowWatermarkModeException("WatermarkMode")
+        };
+
+        if (req.Rotation.HasValue)
+        {
+            watermark.Rotate(req.Rotation.Value);
+        }
+
+        if (req.Opacity.HasValue)
+        {
+            // 可选，设置水印透明度
+            watermark.Evaluate(Channels.Alpha, EvaluateOperator.Divide, 1.0 / req.Opacity.Value);
+        }
+
+        // 遍历文件集合进行处理
+        foreach (var file in req.ImageSources)
+        {
+            // 获取没有扩展名的文件名称
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            // 结果输出路径
+            var outputFile = Path.Combine(req?.OutputFilePath!, $"{fileName}{req?.Suffix ?? ""}.{req?.OutputExtension}");
+            // 加载原图
+            using var image = new MagickImage(file);
+
+            if (req?.IsTile == true)
+            {
+                // 将 水印 图像以平铺的方式叠加到 image 上
+                image.Tile(watermark, CompositeOperator.Over);
+            }
+            else
+            {
+                // 边距
+                int offset = req?.Margin ?? 0;
+                // 在指定位置绘制水印。CompositeOperator.Over 模式表示透明部分不会覆盖底层图像
+                image.Composite(watermark,
+                    _watermarkPositionGravityMaps[req?.Position ?? WatermarkPosition.Center],
+                    offset, // offset X
+                    offset, // offset Y
+                    CompositeOperator.Over)
+                    ;
+            }
+            // Save the result
+            await image.WriteAsync(outputFile);
+
+            OnWatermarked?.Invoke(this, new WatermarkEventArgs(i));
+            i++;
+        }
     }
 }
